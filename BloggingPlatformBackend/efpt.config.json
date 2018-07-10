@@ -1,0 +1,1 @@
+﻿{"ContextClassName":"BloggingPlatformDB","DefaultDacpacSchema":null,"IdReplace":false,"IncludeConnectionString":true,"OutputPath":"Models","ProjectRootNamespace":"BloggingPlatformBackend","SelectedToBeGenerated":0,"Tables":["dbo.BlogPost","dbo.Comment","dbo.PostTags","dbo.Tag"],"UseDatabaseNames":true,"UseFluentApiOnly":false,"UseHandleBars":false,"UseInflector":false}

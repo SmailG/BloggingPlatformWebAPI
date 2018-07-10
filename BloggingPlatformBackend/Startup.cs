@@ -10,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
+using BloggingPlatformBackend.Models;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace BloggingPlatformBackend
 {
@@ -25,7 +28,13 @@ namespace BloggingPlatformBackend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<BloggingPlatformDB>(options => options.UseSqlServer(Configuration.GetConnectionString("BloggingPlatformDbCNN")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = "BloggerPlatformAPI", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,6 +50,14 @@ namespace BloggingPlatformBackend
             }
 
             app.UseHttpsRedirection();
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "BloggerPlatformAPI V1");
+            });
+
             app.UseMvc();
         }
     }
