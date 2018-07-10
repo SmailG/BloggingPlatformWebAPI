@@ -8,12 +8,17 @@ namespace BloggingPlatformBackend.Models
     [Table("Tag")]
     public partial class Tag
     {
+        public Tag()
+        {
+            PostTags = new HashSet<PostTags>();
+        }
+
         public int TagID { get; set; }
         [Required]
         [StringLength(50)]
         public string TagName { get; set; }
 
         [InverseProperty("Tag")]
-        public PostTags PostTags { get; set; }
+        public ICollection<PostTags> PostTags { get; set; }
     }
 }

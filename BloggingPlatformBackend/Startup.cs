@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using BloggingPlatformBackend.Models;
 using Swashbuckle.AspNetCore.Swagger;
 
+
 namespace BloggingPlatformBackend
 {
     public class Startup
@@ -30,6 +31,7 @@ namespace BloggingPlatformBackend
         {
             services.AddDbContext<BloggingPlatformDB>(options => options.UseSqlServer(Configuration.GetConnectionString("BloggingPlatformDbCNN")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            
 
             services.AddSwaggerGen(c =>
             {

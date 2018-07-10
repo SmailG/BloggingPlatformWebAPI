@@ -6,6 +6,10 @@ namespace BloggingPlatformBackend.Models
 {
     public partial class BloggingPlatformDB : DbContext
     {
+        public BloggingPlatformDB()
+        {
+        }
+
         public BloggingPlatformDB(DbContextOptions<BloggingPlatformDB> options)
             : base(options)
         {
@@ -42,21 +46,24 @@ namespace BloggingPlatformBackend.Models
             {
                 entity.HasKey(e => new { e.BlogPostID, e.TagID });
 
-                entity.HasIndex(e => e.TagID)
-                    .HasName("UQ__PostTags__657CFA4D988AFF33")
-                    .IsUnique();
-
                 entity.HasOne(d => d.BlogPost)
                     .WithMany(p => p.PostTags)
                     .HasForeignKey(d => d.BlogPostID)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__PostTags__BlogPo__52593CB8");
+                    .HasConstraintName("FK__PostTags__BlogPo__60A75C0F");
 
                 entity.HasOne(d => d.Tag)
-                    .WithOne(p => p.PostTags)
-                    .HasForeignKey<PostTags>(d => d.TagID)
+                    .WithMany(p => p.PostTags)
+                    .HasForeignKey(d => d.TagID)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__PostTags__TagID__534D60F1");
+                    .HasConstraintName("FK__PostTags__TagID__619B8048");
+            });
+
+            modelBuilder.Entity<Tag>(entity =>
+            {
+                entity.HasIndex(e => e.TagName)
+                    .HasName("UQ__Tag__BDE0FD1DF380243B")
+                    .IsUnique();
             });
 
             OnModelCreatingPartial(modelBuilder);
