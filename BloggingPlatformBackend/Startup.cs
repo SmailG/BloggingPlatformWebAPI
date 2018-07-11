@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using BloggingPlatformBackend.Models;
 using Swashbuckle.AspNetCore.Swagger;
-
+using BloggingPlatformBackend.Models.Converters;
 
 namespace BloggingPlatformBackend
 {
@@ -29,6 +29,7 @@ namespace BloggingPlatformBackend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<BlogPostConverter>();
             services.AddDbContext<BloggingPlatformDB>(options => options.UseSqlServer(Configuration.GetConnectionString("BloggingPlatformDbCNN")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             

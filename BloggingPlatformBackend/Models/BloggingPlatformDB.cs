@@ -49,7 +49,7 @@ namespace BloggingPlatformBackend.Models
                 entity.HasOne(d => d.BlogPost)
                     .WithMany(p => p.PostTags)
                     .HasForeignKey(d => d.BlogPostID)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK__PostTags__BlogPo__60A75C0F");
 
                 entity.HasOne(d => d.Tag)

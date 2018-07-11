@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BloggingPlatformBackend.Extensions;
 using BloggingPlatformBackend.Models;
+using BloggingPlatformBackend.Models.Converters;
 using BloggingPlatformBackend.Models.Views;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,10 +18,12 @@ namespace BloggingPlatformBackend.Controllers
     public class PostsController : ControllerBase
     {
         private readonly BloggingPlatformDB db;
+        private BlogPostConverter bpConverter;
 
-        public PostsController(BloggingPlatformDB _db)
+        public PostsController(BloggingPlatformDB _db, BlogPostConverter _bpConverter)
         {
             db = _db;
+            bpConverter = _bpConverter;
         }
 
         // GET api/posts
@@ -63,59 +66,47 @@ namespace BloggingPlatformBackend.Controllers
 
             if (blogPost != null)
             {
-                 blogPostView = new BlogPostView {
-                    Slug = blogPost.Slug,
-                    Title = blogPost.Title,
-                    Description = blogPost.Description,
-                    Body = blogPost.Body,
-                    CreatedAt = blogPost.CreatedAt,
-                    UpdatedAt = blogPost.UpdatedAt,
-                    FavoritesCount = blogPost.FavoritesCount,
-                    Favorited = blogPost.Favorited,
-                    TagList = blogPost.PostTags.Select(pt => pt.Tag.TagName)
-                };
+               blogPostView = bpConverter.ToBlogPostView(blogPost);
             }
             return blogPostView;
         }
 
         // POST api/posts
         [HttpPost]
-        public void Post([FromBody] InsertBlogView ibv)
+        public ActionResult<BlogPostView> AddBlogPost([FromBody] InsertBlogView ibv)
         {
 
-            BlogPost bp = new BlogPost();
-            bp.Title = ibv.Title;
-            bp.Description = ibv.Description;
-            bp.Body = ibv.Body;
+            BlogPost blogPost = new BlogPost();
+            blogPost.Title = ibv.Title;
+            blogPost.Description = ibv.Description;
+            blogPost.Body = ibv.Body;
 
             foreach (string tag in ibv.TagList)
             {
                 // If for some reason an non-existant an unknown tag is passed
                 try
                 {
-                    PostTags pt = new PostTags { BlogPostID = bp.BlogPostID, TagID = db.Tags.SingleOrDefault(t => t.TagName == tag).TagID };
+                    PostTags pt = new PostTags { BlogPostID = blogPost.BlogPostID, TagID = db.Tags.SingleOrDefault(t => t.TagName == tag).TagID };
                     if (pt != null)
                     {
-                        bp.PostTags.Add(pt);
+                        blogPost.PostTags.Add(pt);
                     }
                 }
                 catch {
                     continue;
                 }
-                
-               
             }
 
-            bp.CreatedAt = DateTime.Now;
-            bp.UpdatedAt = bp.CreatedAt;
-            bp.Favorited = false;
-            bp.FavoritesCount = 0;
-            bp.Slug = SlugGenerator(bp.Title);
+            blogPost.CreatedAt = DateTime.Now;
+            blogPost.UpdatedAt = blogPost.CreatedAt;
+            blogPost.Favorited = false;
+            blogPost.FavoritesCount = 0;
+            blogPost.Slug = SlugGenerator(blogPost.Title);
 
-            db.BlogPosts.Add(bp);
+            db.BlogPosts.Add(blogPost);
             db.SaveChanges();
 
-            RedirectToAction("GetBySlug", new { slug = bp.Slug });
+            return bpConverter.ToBlogPostView(blogPost);
         }
 
         //Generates blog post slug from blog title
@@ -135,14 +126,74 @@ namespace BloggingPlatformBackend.Controllers
 
         // PUT api/values/slug
         [HttpPut("{slug}")]
-        public void Put(string slug, [FromBody] string value)
+        public ActionResult<BlogPostView> UpdateBlogPost(string slug, [FromBody] InsertBlogView insertBlogView)
         {
+            BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).SingleOrDefault(bp => bp.Slug == slug);
+
+            if (!string.IsNullOrWhiteSpace(insertBlogView.Body))
+                blogPost.Body = insertBlogView.Body;
+
+            if (!string.IsNullOrWhiteSpace(insertBlogView.Description))
+                blogPost.Description = insertBlogView.Description;
+
+            if (!string.IsNullOrWhiteSpace(insertBlogView.Title) && !blogPost.Title.Equals(insertBlogView.Title))
+            {
+                blogPost.Title = insertBlogView.Title;
+                blogPost.Slug = SlugGenerator(insertBlogView.Title);
+            }
+
+            blogPost.UpdatedAt = DateTime.Now;
+
+            db.Entry(blogPost).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return bpConverter.ToBlogPostView(blogPost);
         }
 
+
         // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("{slug}")]
+        public void Delete(string slug)
         {
+            BlogPost blogPost = db.BlogPosts.Include(bp=>bp.PostTags).SingleOrDefault(bp => bp.Slug == slug);
+            db.BlogPosts.Remove(blogPost);
+            db.SaveChanges();
+        }
+
+
+        //Favoriting logic
+
+        [HttpPost]
+        [Route("{slug}/favorite")]
+        public ActionResult<BlogPostView> Favorite(string slug)
+        {
+            BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).SingleOrDefault(bp => bp.Slug == slug);
+            blogPost.FavoritesCount++;
+            blogPost.Favorited = true;
+
+            db.Entry(blogPost).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return bpConverter.ToBlogPostView(blogPost);
+        }
+
+
+        [HttpDelete]
+        [Route("{slug}/favorite")]
+        public ActionResult<BlogPostView> UnFavorite(string slug)
+        {
+            BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).SingleOrDefault(bp => bp.Slug == slug);
+            if (blogPost.FavoritesCount > 0)
+            {
+                blogPost.FavoritesCount--;
+            }
+
+            blogPost.Favorited = blogPost.FavoritesCount <= 0 ? false : true;
+
+            db.Entry(blogPost).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return bpConverter.ToBlogPostView(blogPost);
         }
 
 
