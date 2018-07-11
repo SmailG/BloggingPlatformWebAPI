@@ -15,7 +15,7 @@ namespace BloggingPlatformBackend.Models
 
         public int TagID { get; set; }
         [Required]
-        [StringLength(50)]
+        [StringLength(50, MinimumLength = 2)]
         public string TagName { get; set; }
 
         [InverseProperty("Tag")]

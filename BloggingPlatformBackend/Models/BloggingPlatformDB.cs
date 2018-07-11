@@ -38,7 +38,7 @@ namespace BloggingPlatformBackend.Models
                 entity.HasOne(d => d.BlogPost)
                     .WithMany(p => p.Comments)
                     .HasForeignKey(d => d.BlogPostID)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK__Comment__BlogPos__5629CD9C");
             });
 

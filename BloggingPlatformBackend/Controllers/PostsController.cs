@@ -128,7 +128,7 @@ namespace BloggingPlatformBackend.Controllers
         [HttpPut("{slug}")]
         public ActionResult<BlogPostView> UpdateBlogPost(string slug, [FromBody] InsertBlogView insertBlogView)
         {
-            BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).SingleOrDefault(bp => bp.Slug == slug);
+            BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
 
             if (!string.IsNullOrWhiteSpace(insertBlogView.Body))
                 blogPost.Body = insertBlogView.Body;
@@ -150,24 +150,22 @@ namespace BloggingPlatformBackend.Controllers
             return bpConverter.ToBlogPostView(blogPost);
         }
 
-
         // DELETE api/values/5
         [HttpDelete("{slug}")]
         public void Delete(string slug)
         {
-            BlogPost blogPost = db.BlogPosts.Include(bp=>bp.PostTags).SingleOrDefault(bp => bp.Slug == slug);
+            BlogPost blogPost = db.BlogPosts.Include(bp=>bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
             db.BlogPosts.Remove(blogPost);
             db.SaveChanges();
         }
 
 
         //Favoriting logic
-
         [HttpPost]
         [Route("{slug}/favorite")]
         public ActionResult<BlogPostView> Favorite(string slug)
         {
-            BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).SingleOrDefault(bp => bp.Slug == slug);
+            BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
             blogPost.FavoritesCount++;
             blogPost.Favorited = true;
 
@@ -177,12 +175,11 @@ namespace BloggingPlatformBackend.Controllers
             return bpConverter.ToBlogPostView(blogPost);
         }
 
-
         [HttpDelete]
         [Route("{slug}/favorite")]
         public ActionResult<BlogPostView> UnFavorite(string slug)
         {
-            BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).SingleOrDefault(bp => bp.Slug == slug);
+            BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
             if (blogPost.FavoritesCount > 0)
             {
                 blogPost.FavoritesCount--;

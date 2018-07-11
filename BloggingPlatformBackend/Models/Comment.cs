@@ -11,7 +11,7 @@ namespace BloggingPlatformBackend.Models
         public int CommentID { get; set; }
         public int BlogPostID { get; set; }
         [Required]
-        [StringLength(500)]
+        [StringLength(500, MinimumLength = 2)]
         public string Body { get; set; }
         [Column(TypeName = "datetime")]
         public DateTime CreatedAt { get; set; }
