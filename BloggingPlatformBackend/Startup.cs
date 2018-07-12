@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using BloggingPlatformBackend.Models;
 using Swashbuckle.AspNetCore.Swagger;
 using BloggingPlatformBackend.Models.Converters;
+using Microsoft.AspNetCore.Cors;
 
 namespace BloggingPlatformBackend
 {
@@ -33,7 +34,9 @@ namespace BloggingPlatformBackend
             services.AddTransient<BlogPostConverter>();
             services.AddDbContext<BloggingPlatformDB>(options => options.UseSqlServer(Configuration.GetConnectionString("BloggingPlatformDbCNN")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            
+
+            services.AddCors();
+
 
             services.AddSwaggerGen(c =>
             {
@@ -44,6 +47,9 @@ namespace BloggingPlatformBackend
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.UseCors(builder =>
+                builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

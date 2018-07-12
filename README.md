@@ -30,6 +30,8 @@ I know it makes it a bit messy bit I was thinking it would be better if the para
 
 - Cascading delete is used with comments so all the comments of the relevant post are deleted if the post is deleted.
 
+- CORS is enabled
+
 #Built With
 Visual Studio 2017
 ASP .NET Core 2.1
