@@ -32,9 +32,14 @@ namespace BloggingPlatformBackend.Controllers
         public ActionResult<IEnumerable<CommentView>> GetComments(string slug)
         {
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.Comments).FirstOrDefault(bp => bp.Slug == slug);
-            IEnumerable<CommentView> commentList = blogPost.Comments.Select(c => commentConverter.ToCommentView(c));
+            if (blogPost != null)
+            {
+                IEnumerable<CommentView> commentList = blogPost.Comments.Select(c => commentConverter.ToCommentView(c));
 
-            return commentList.ToList();
+                return commentList.ToList();
+            }
+
+            return null;
         }
 
         //Add comment
@@ -43,18 +48,24 @@ namespace BloggingPlatformBackend.Controllers
         public ActionResult<CommentView> AddComment(string slug, [FromBody] string body)
         {
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.Comments).FirstOrDefault(bp => bp.Slug == slug);
-            Comment comment = new Comment {
-                BlogPostID = blogPost.BlogPostID,
-                Body = body,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
+            if (blogPost != null)
+            {
+                Comment comment = new Comment
+                {
+                    BlogPostID = blogPost.BlogPostID,
+                    Body = body,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
 
-            blogPost.Comments.Add(comment);
-            db.Entry(blogPost).State = EntityState.Modified;
-            db.SaveChanges();
+                blogPost.Comments.Add(comment);
+                db.Entry(blogPost).State = EntityState.Modified;
+                db.SaveChanges();
 
-            return commentConverter.ToCommentView(comment);
+                return commentConverter.ToCommentView(comment);
+            }
+
+            return null;
         }
 
         //Delete comment
@@ -63,13 +74,16 @@ namespace BloggingPlatformBackend.Controllers
         public void DeleteComment(string slug, int id)
         {
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.Comments).FirstOrDefault(bp => bp.Slug == slug);
-            Comment comment = blogPost.Comments.FirstOrDefault(c => c.CommentID == id);
-
-            if (comment != null)
+            if (blogPost != null)
             {
-                blogPost.Comments.Remove(comment);
-                db.Entry(blogPost).State = EntityState.Modified;
-                db.SaveChanges();
+                Comment comment = blogPost.Comments.FirstOrDefault(c => c.CommentID == id);
+
+                if (comment != null)
+                {
+                    blogPost.Comments.Remove(comment);
+                    db.Entry(blogPost).State = EntityState.Modified;
+                    db.SaveChanges();
+                }
             }
         }
 

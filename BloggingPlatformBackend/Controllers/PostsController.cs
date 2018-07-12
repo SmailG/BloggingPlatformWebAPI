@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using BloggingPlatformBackend.Extensions;
 using BloggingPlatformBackend.Models;
@@ -129,25 +131,30 @@ namespace BloggingPlatformBackend.Controllers
         public ActionResult<BlogPostView> UpdateBlogPost(string slug, [FromBody] InsertBlogView insertBlogView)
         {
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
-
-            if (!string.IsNullOrWhiteSpace(insertBlogView.Body))
-                blogPost.Body = insertBlogView.Body;
-
-            if (!string.IsNullOrWhiteSpace(insertBlogView.Description))
-                blogPost.Description = insertBlogView.Description;
-
-            if (!string.IsNullOrWhiteSpace(insertBlogView.Title) && !blogPost.Title.Equals(insertBlogView.Title))
+            if (blogPost != null)
             {
-                blogPost.Title = insertBlogView.Title;
-                blogPost.Slug = SlugGenerator(insertBlogView.Title);
+                if (!string.IsNullOrWhiteSpace(insertBlogView.Body))
+                    blogPost.Body = insertBlogView.Body;
+
+                if (!string.IsNullOrWhiteSpace(insertBlogView.Description))
+                    blogPost.Description = insertBlogView.Description;
+
+                if (!string.IsNullOrWhiteSpace(insertBlogView.Title) && !blogPost.Title.Equals(insertBlogView.Title))
+                {
+                    blogPost.Title = insertBlogView.Title;
+                    blogPost.Slug = SlugGenerator(insertBlogView.Title);
+                }
+
+                blogPost.UpdatedAt = DateTime.Now;
+
+                db.Entry(blogPost).State = EntityState.Modified;
+                db.SaveChanges();
+
+                return bpConverter.ToBlogPostView(blogPost);
             }
 
-            blogPost.UpdatedAt = DateTime.Now;
+            return null;
 
-            db.Entry(blogPost).State = EntityState.Modified;
-            db.SaveChanges();
-
-            return bpConverter.ToBlogPostView(blogPost);
         }
 
         // DELETE api/values/5
@@ -155,8 +162,11 @@ namespace BloggingPlatformBackend.Controllers
         public void Delete(string slug)
         {
             BlogPost blogPost = db.BlogPosts.Include(bp=>bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
-            db.BlogPosts.Remove(blogPost);
-            db.SaveChanges();
+            if (blogPost != null)
+            {
+                db.BlogPosts.Remove(blogPost);
+                db.SaveChanges();
+            }
         }
 
 
@@ -166,13 +176,17 @@ namespace BloggingPlatformBackend.Controllers
         public ActionResult<BlogPostView> Favorite(string slug)
         {
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
-            blogPost.FavoritesCount++;
-            blogPost.Favorited = true;
+            if (blogPost != null)
+            {
+                blogPost.FavoritesCount++;
+                blogPost.Favorited = true;
 
-            db.Entry(blogPost).State = EntityState.Modified;
-            db.SaveChanges();
+                db.Entry(blogPost).State = EntityState.Modified;
+                db.SaveChanges();
 
-            return bpConverter.ToBlogPostView(blogPost);
+                return bpConverter.ToBlogPostView(blogPost);
+            }
+            return null;
         }
 
         [HttpDelete]
@@ -180,17 +194,22 @@ namespace BloggingPlatformBackend.Controllers
         public ActionResult<BlogPostView> UnFavorite(string slug)
         {
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
-            if (blogPost.FavoritesCount > 0)
+            if (blogPost != null)
             {
-                blogPost.FavoritesCount--;
+                if (blogPost.FavoritesCount > 0)
+                {
+                    blogPost.FavoritesCount--;
+                }
+
+                blogPost.Favorited = blogPost.FavoritesCount <= 0 ? false : true;
+
+                db.Entry(blogPost).State = EntityState.Modified;
+                db.SaveChanges();
+
+                return bpConverter.ToBlogPostView(blogPost);
             }
 
-            blogPost.Favorited = blogPost.FavoritesCount <= 0 ? false : true;
-
-            db.Entry(blogPost).State = EntityState.Modified;
-            db.SaveChanges();
-
-            return bpConverter.ToBlogPostView(blogPost);
+            return null;
         }
 
 
