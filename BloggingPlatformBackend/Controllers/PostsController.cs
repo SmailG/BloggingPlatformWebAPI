@@ -68,15 +68,23 @@ namespace BloggingPlatformBackend.Controllers
 
             if (blogPost != null)
             {
-               blogPostView = bpConverter.ToBlogPostView(blogPost);
+                blogPostView = bpConverter.ToBlogPostView(blogPost);
+                return blogPostView;
             }
-            return blogPostView;
+            else {
+                return NotFound();
+            }
+            
         }
 
         // POST api/posts
         [HttpPost]
         public ActionResult<BlogPostView> AddBlogPost([FromBody] InsertBlogView ibv)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             BlogPost blogPost = new BlogPost();
             blogPost.Title = ibv.Title;
@@ -130,6 +138,11 @@ namespace BloggingPlatformBackend.Controllers
         [HttpPut("{slug}")]
         public ActionResult<BlogPostView> UpdateBlogPost(string slug, [FromBody] InsertBlogView insertBlogView)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
             if (blogPost != null)
             {
@@ -167,6 +180,7 @@ namespace BloggingPlatformBackend.Controllers
                 db.BlogPosts.Remove(blogPost);
                 db.SaveChanges();
             }
+            
         }
 
 
@@ -186,7 +200,7 @@ namespace BloggingPlatformBackend.Controllers
 
                 return bpConverter.ToBlogPostView(blogPost);
             }
-            return null;
+            return BadRequest();
         }
 
         [HttpDelete]
@@ -209,7 +223,7 @@ namespace BloggingPlatformBackend.Controllers
                 return bpConverter.ToBlogPostView(blogPost);
             }
 
-            return null;
+            return BadRequest();
         }
 
 

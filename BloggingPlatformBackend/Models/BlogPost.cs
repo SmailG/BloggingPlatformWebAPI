@@ -19,13 +19,13 @@ namespace BloggingPlatformBackend.Models
         [StringLength(110)]
         public string Slug { get; set; }
         [Required]
-        [StringLength(100, MinimumLength = 5)]
+        [StringLength(100)]
         public string Title { get; set; }
         [Required]
-        [StringLength(200, MinimumLength = 5)]
+        [StringLength(200)]
         public string Description { get; set; }
         [Required]
-        [StringLength(4000, MinimumLength = 5)]
+        [StringLength(4000)]
         public string Body { get; set; }
         [Column(TypeName = "datetime")]
         public DateTime CreatedAt { get; set; }

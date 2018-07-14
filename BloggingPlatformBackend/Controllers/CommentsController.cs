@@ -39,7 +39,7 @@ namespace BloggingPlatformBackend.Controllers
                 return commentList.ToList();
             }
 
-            return null;
+            return BadRequest();
         }
 
         //Add comment
@@ -47,25 +47,32 @@ namespace BloggingPlatformBackend.Controllers
         [Route("{slug}/comments")]
         public ActionResult<CommentView> AddComment(string slug, [FromBody] string body)
         {
-            BlogPost blogPost = db.BlogPosts.Include(bp => bp.Comments).FirstOrDefault(bp => bp.Slug == slug);
-            if (blogPost != null)
+            if (string.IsNullOrWhiteSpace(body))
             {
-                Comment comment = new Comment
+                BlogPost blogPost = db.BlogPosts.Include(bp => bp.Comments).FirstOrDefault(bp => bp.Slug == slug);
+                if (blogPost != null)
                 {
-                    BlogPostID = blogPost.BlogPostID,
-                    Body = body,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
-                };
+                    Comment comment = new Comment
+                    {
+                        BlogPostID = blogPost.BlogPostID,
+                        Body = body,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
 
-                blogPost.Comments.Add(comment);
-                db.Entry(blogPost).State = EntityState.Modified;
-                db.SaveChanges();
+                    blogPost.Comments.Add(comment);
+                    db.Entry(blogPost).State = EntityState.Modified;
+                    db.SaveChanges();
 
-                return commentConverter.ToCommentView(comment);
+                    return commentConverter.ToCommentView(comment);
+                }
+
+                return NotFound();
             }
 
-            return null;
+            else {
+                return BadRequest(ModelState);
+            }
         }
 
         //Delete comment
