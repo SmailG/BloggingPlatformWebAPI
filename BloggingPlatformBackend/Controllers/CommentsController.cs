@@ -31,6 +31,10 @@ namespace BloggingPlatformBackend.Controllers
         [Route("{slug}/comments")]
         public ActionResult<IEnumerable<CommentView>> GetComments(string slug)
         {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                return BadRequest();
+            }
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.Comments).FirstOrDefault(bp => bp.Slug == slug);
             if (blogPost != null)
             {
@@ -47,7 +51,7 @@ namespace BloggingPlatformBackend.Controllers
         [Route("{slug}/comments")]
         public ActionResult<CommentView> AddComment(string slug, [FromBody] string body)
         {
-            if (string.IsNullOrWhiteSpace(body))
+            if (!string.IsNullOrWhiteSpace(body))
             {
                 BlogPost blogPost = db.BlogPosts.Include(bp => bp.Comments).FirstOrDefault(bp => bp.Slug == slug);
                 if (blogPost != null)
@@ -71,7 +75,7 @@ namespace BloggingPlatformBackend.Controllers
             }
 
             else {
-                return BadRequest(ModelState);
+                return BadRequest();
             }
         }
 

@@ -63,6 +63,10 @@ namespace BloggingPlatformBackend.Controllers
         [HttpGet("{slug}")]
         public ActionResult<BlogPostView> GetBySlug(string slug)
         {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                return BadRequest();
+            }
             BlogPostView blogPostView = null;
             BlogPost blogPost = db.BlogPosts.Where(bp => bp.Slug == slug).Include(bp => bp.PostTags).FirstOrDefault();
 
@@ -138,6 +142,11 @@ namespace BloggingPlatformBackend.Controllers
         [HttpPut("{slug}")]
         public ActionResult<BlogPostView> UpdateBlogPost(string slug, [FromBody] InsertBlogView insertBlogView)
         {
+            if(string.IsNullOrWhiteSpace(slug))
+            {
+                BadRequest();
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -189,6 +198,10 @@ namespace BloggingPlatformBackend.Controllers
         [Route("{slug}/favorite")]
         public ActionResult<BlogPostView> Favorite(string slug)
         {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                BadRequest();
+            }
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
             if (blogPost != null)
             {
@@ -207,6 +220,10 @@ namespace BloggingPlatformBackend.Controllers
         [Route("{slug}/favorite")]
         public ActionResult<BlogPostView> UnFavorite(string slug)
         {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                BadRequest();
+            }
             BlogPost blogPost = db.BlogPosts.Include(bp => bp.PostTags).FirstOrDefault(bp => bp.Slug == slug);
             if (blogPost != null)
             {
